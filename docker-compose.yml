@@ -1,0 +1,37 @@
+# docker compose up --build    Postgres + API on http://localhost:3000
+#
+# Postgres is published on 5433 so it doesn't clash with a local Postgres on 5432.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: superchat
+      POSTGRES_PASSWORD: superchat
+      POSTGRES_DB: superchat
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U superchat -d superchat"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      target: runtime
+    environment:
+      DATABASE_URL: postgres://superchat:superchat@postgres:5432/superchat
+      PORT: "3000"
+      PLATFORM_FEE_BPS: "2000"
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
