@@ -7,6 +7,7 @@ import { HealthController } from './health/health.controller';
 import { PayoutsModule } from './payouts/payouts.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { SuperChatsModule } from './super-chats/super-chats.module';
+import { UiController } from './ui/ui.controller';
 import { UsersModule } from './users/users.module';
 import { WalletModule } from './wallet/wallet.module';
 
@@ -22,7 +23,7 @@ import { WalletModule } from './wallet/wallet.module';
     // Super Chats still call pg_notify; with no listener the event is simply dropped.
     ...(IS_SERVERLESS ? [] : [RealtimeModule]),
   ],
-  controllers: [HealthController],
+  controllers: [HealthController, UiController],
   providers: [
     // Registered here rather than in main.ts so tests get the same validation.
     // Unknown body fields are rejected instead of silently dropped.

@@ -23,6 +23,8 @@ Requirements: Docker with Docker Compose.
 docker compose up --build          # Postgres + API on http://localhost:3000, WebSocket on ws://localhost:3000/ws
 ```
 
+**Test UI: http://localhost:3000/.** A simple page to try the whole flow from the browser (users, buying tokens, Super Chats, payouts, admin actions).
+
 **Interactive API docs (Swagger): http://localhost:3000/docs.** Click **Authorize** to set `x-user-id`, then use "Try it out" on any endpoint.
 
 Postgres is published on host port **5433**, so it doesn't clash with a local Postgres on 5432. Migrations run automatically when the API starts.

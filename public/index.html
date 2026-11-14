@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Super Chat Wallet - Test UI</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; background: #f4f5f7; color: #222; }
+  header { background: #222; color: #fff; padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  header h1 { font-size: 18px; margin: 0; flex: 1; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+  section { background: #fff; border-radius: 8px; padding: 14px; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  section h2 { font-size: 15px; margin: 0 0 10px; }
+  .wide { grid-column: 1 / -1; }
+  input, select, button { font: inherit; padding: 6px 8px; margin: 2px 0; }
+  input { width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+  button { border: 0; border-radius: 4px; background: #2563eb; color: #fff; cursor: pointer; }
+  button.grey { background: #6b7280; }
+  button.red { background: #dc2626; }
+  button.green { background: #16a34a; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  td, th { text-align: left; padding: 4px 6px; border-bottom: 1px solid #eee; }
+  .row { display: flex; gap: 6px; }
+  .muted { color: #777; font-size: 13px; }
+  .chat { border-left: 4px solid #2563eb; padding: 6px 8px; margin: 6px 0; background: #f8fafc; font-size: 14px; }
+  .chat.pinned { border-color: #f59e0b; background: #fffbeb; }
+  .chat.reversed { opacity: .5; text-decoration: line-through; }
+  #log { font-family: monospace; font-size: 12px; max-height: 220px; overflow: auto; }
+  .ok { color: #16a34a; } .err { color: #dc2626; } .replay { color: #d97706; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Super Chat Wallet</h1>
+  <label>Acting as
+    <select id="actingAs" onchange="refreshAll()"></select>
+  </label>
+  <span id="balances"></span>
+</header>
+
+<main>
+  <section>
+    <h2>1. Users</h2>
+    <input id="userName" placeholder="Display name, e.g. Cara">
+    <button onclick="createUser()">Create user</button>
+    <p class="muted">Create a creator and a viewer, then switch between them with "Acting as" at the top. The admin is already there.</p>
+  </section>
+
+  <section>
+    <h2>2. Buy tokens</h2>
+    <div class="row">
+      <input id="buyAmount" type="number" value="500" min="1">
+      <button onclick="buy()">Buy</button>
+    </div>
+    <button class="grey" onclick="retryBuy()">Retry last purchase (same key)</button>
+    <p class="muted">The retry sends the same Idempotency-Key again. It returns 200 and nothing is charged twice.</p>
+  </section>
+
+  <section>
+    <h2>3. Stream</h2>
+    <div class="row">
+      <input id="streamId" value="demo-stream">
+      <button onclick="goLive()">Go live</button>
+      <button class="grey" onclick="watch()">Watch</button>
+    </div>
+    <p class="muted">"Go live" as the creator, "Watch" as anyone. The feed refreshes every 3 seconds.</p>
+  </section>
+
+  <section>
+    <h2>4. Send Super Chat</h2>
+    <input id="scMessage" value="Great stream!">
+    <div class="row">
+      <input id="scAmount" type="number" value="100" min="1">
+      <button onclick="sendSuperChat()">Send</button>
+    </div>
+    <p class="muted">Creator gets 80%, platform 20%. Bigger amounts stay pinned longer.</p>
+  </section>
+
+  <section class="wide">
+    <h2>Stream feed <span id="feedTitle" class="muted"></span></h2>
+    <div id="pinned"></div>
+    <div id="feed"><p class="muted">Not watching a stream.</p></div>
+  </section>
+
+  <section>
+    <h2>5. Payouts (creator)</h2>
+    <div class="row">
+      <input id="payoutAmount" type="number" value="50" min="1">
+      <button onclick="requestPayout()">Request payout</button>
+    </div>
+    <table id="myPayouts"></table>
+  </section>
+
+  <section>
+    <h2>6. Admin</h2>
+    <p class="muted">Switch "Acting as" to Admin. Reverse Super Chats from the feed above.</p>
+    <button class="grey" onclick="loadAdminPayouts()">Load payouts</button>
+    <table id="adminPayouts"></table>
+  </section>
+
+  <section class="wide">
+    <h2>Wallet statement (ledger entries)</h2>
+    <table id="statement"></table>
+  </section>
+
+  <section class="wide">
+    <h2>Request log</h2>
+    <div id="log"></div>
+  </section>
+</main>
+
+<script>
+const ADMIN = { id: '00000000-0000-0000-0000-00000000ad01', displayName: 'Admin' };
+let users = JSON.parse(localStorage.getItem('users') || '[]');
+let lastBuy = null;
+let watching = null;
+let timer = null;
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const me = () => $('actingAs').value;
+const nameOf = (id) => ([ADMIN, ...users].find((u) => u.id === id) || { displayName: id.slice(0, 8) }).displayName;
+const newKey = () => crypto.randomUUID();
+
+async function api(method, path, body, key) {
+  const headers = { 'content-type': 'application/json' };
+  if (me()) headers['x-user-id'] = me();
+  if (key) headers['Idempotency-Key'] = key;
+  const res = await fetch(path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  const data = await res.json().catch(() => null);
+  const replayed = res.headers.get('Idempotent-Replayed') === 'true';
+  if (method !== 'GET' || !res.ok) log(method, path, res.status, replayed, data);
+  if (!res.ok) throw new Error(Array.isArray(data?.message) ? data.message.join(', ') : data?.message || res.statusText);
+  return data;
+}
+
+function log(method, path, status, replayed, data) {
+  const cls = status >= 400 ? 'err' : replayed ? 'replay' : 'ok';
+  const extra = replayed ? ' Idempotent-Replayed' : status >= 400 ? ' ' + esc(data?.message || '') : '';
+  const time = new Date().toLocaleTimeString();
+  $('log').insertAdjacentHTML('afterbegin', `<div>${time} ${method} ${esc(path)} <b class="${cls}">${status}${extra}</b></div>`);
+}
+
+function run(fn) {
+  return (...args) => fn(...args).catch((e) => alert(e.message));
+}
+
+function renderUsers() {
+  const current = me();
+  $('actingAs').innerHTML = [ADMIN, ...users]
+    .map((u) => `<option value="${u.id}">${esc(u.displayName)}</option>`)
+    .join('');
+  if (current) $('actingAs').value = current;
+}
+
+const createUser = run(async () => {
+  const name = $('userName').value.trim();
+  if (!name) return alert('Enter a name');
+  const user = await api('POST', '/users', { displayName: name });
+  users.push({ id: user.id, displayName: user.displayName });
+  localStorage.setItem('users', JSON.stringify(users));
+  $('userName').value = '';
+  renderUsers();
+  $('actingAs').value = user.id;
+  refreshAll();
+});
+
+const buy = run(async () => {
+  lastBuy = { key: newKey(), body: { amount: Number($('buyAmount').value) }, user: me() };
+  await api('POST', '/wallet/purchases', lastBuy.body, lastBuy.key);
+  refreshAll();
+});
+
+const retryBuy = run(async () => {
+  if (!lastBuy) return alert('Buy something first');
+  if (lastBuy.user !== me()) return alert('Switch back to the user who made the last purchase');
+  await api('POST', '/wallet/purchases', lastBuy.body, lastBuy.key);
+  refreshAll();
+});
+
+const goLive = run(async () => {
+  await api('POST', '/streams', { id: $('streamId').value.trim() });
+  watch();
+});
+
+function watch() {
+  watching = $('streamId').value.trim();
+  $('feedTitle').textContent = '(' + watching + ')';
+  clearInterval(timer);
+  loadFeed();
+  timer = setInterval(loadFeed, 3000);
+}
+
+const sendSuperChat = run(async () => {
+  const streamId = $('streamId').value.trim();
+  await api('POST', `/streams/${encodeURIComponent(streamId)}/super-chats`,
+    { message: $('scMessage').value, amount: Number($('scAmount').value) }, newKey());
+  if (watching !== streamId) watch(); else loadFeed();
+  refreshAll();
+});
+
+async function loadFeed() {
+  if (!watching || !me()) return;
+  const path = `/streams/${encodeURIComponent(watching)}`;
+  try {
+    const [chats, pinned] = await Promise.all([
+      api('GET', `${path}/super-chats?limit=200`),
+      api('GET', `${path}/pinned`),
+    ]);
+    $('pinned').innerHTML = pinned.length
+      ? '<b>Pinned</b>' + pinned.map((c) => chatHtml(c, true)).join('')
+      : '';
+    $('feed').innerHTML = chats.length
+      ? '<b>All Super Chats</b>' + chats.map((c) => chatHtml(c, false)).join('')
+      : '<p class="muted">No Super Chats yet.</p>';
+  } catch (e) {
+    $('feed').innerHTML = `<p class="err">${esc(e.message)}</p>`;
+  }
+}
+
+function chatHtml(c, pinned) {
+  const left = Math.max(0, Math.round((new Date(c.pinnedUntil) - Date.now()) / 1000));
+  const reversed = c.status === 'REVERSED';
+  return `<div class="chat ${pinned ? 'pinned' : ''} ${reversed ? 'reversed' : ''}">
+    #${c.streamSeq} <b>${esc(nameOf(c.senderId))}</b>: ${esc(c.message)}
+    <b>${c.amount} tokens</b>
+    <span class="muted">(creator ${c.creatorAmount}, fee ${c.platformFee})</span>
+    ${pinned ? `<span class="muted">pinned ${left}s left</span>` : ''}
+    ${reversed ? '<b class="err">REVERSED</b>' : ''}
+    ${!pinned && !reversed && me() === ADMIN.id ? `<button class="red" onclick="reverse('${c.id}')">Reverse</button>` : ''}
+  </div>`;
+}
+
+const reverse = run(async (id) => {
+  if (!confirm('Reverse this Super Chat and refund the sender?')) return;
+  await api('POST', `/admin/super-chats/${id}/reversal`, { reason: 'reversed from test UI' });
+  loadFeed();
+  refreshAll();
+});
+
+const requestPayout = run(async () => {
+  await api('POST', '/payouts', { amount: Number($('payoutAmount').value) }, newKey());
+  refreshAll();
+});
+
+async function loadMyPayouts() {
+  const list = await api('GET', '/payouts');
+  $('myPayouts').innerHTML = list.length
+    ? '<tr><th>Amount</th><th>Status</th><th>Requested</th></tr>' +
+      list.map((p) => `<tr><td>${p.amount}</td><td>${p.status}</td><td>${new Date(p.createdAt).toLocaleString()}</td></tr>`).join('')
+    : '<tr><td class="muted">No payouts</td></tr>';
+}
+
+const loadAdminPayouts = run(async () => {
+  const list = await api('GET', '/admin/payouts');
+  $('adminPayouts').innerHTML = list.length
+    ? '<tr><th>Creator</th><th>Amount</th><th>Status</th><th></th></tr>' +
+      list.map((p) => `<tr><td>${esc(nameOf(p.creatorId))}</td><td>${p.amount}</td><td>${p.status}</td><td>
+        ${p.status === 'REQUESTED' ? `<button class="green" onclick="decide('${p.id}','paid')">Paid</button>
+        <button class="red" onclick="decide('${p.id}','reject')">Reject</button>` : ''}</td></tr>`).join('')
+    : '<tr><td class="muted">No payouts</td></tr>';
+});
+
+const decide = run(async (id, action) => {
+  await api('POST', `/admin/payouts/${id}/${action}`);
+  loadAdminPayouts();
+  refreshAll();
+});
+
+async function refreshAll() {
+  if (!me()) return;
+  try {
+    const profile = await api('GET', '/me');
+    $('balances').textContent = `Wallet: ${profile.balances.wallet}  |  Earnings: ${profile.balances.earnings}`;
+    const wallet = await api('GET', '/wallet');
+    $('statement').innerHTML = wallet.entries.length
+      ? '<tr><th>Type</th><th>Amount</th><th>Time</th></tr>' +
+        wallet.entries.map((e) => `<tr><td>${e.kind}</td><td class="${e.amount < 0 ? 'err' : 'ok'}">${e.amount > 0 ? '+' : ''}${e.amount}</td><td>${new Date(e.createdAt).toLocaleString()}</td></tr>`).join('')
+      : '<tr><td class="muted">No entries yet</td></tr>';
+    await loadMyPayouts();
+    loadFeed();
+  } catch (e) {
+    $('balances').textContent = e.message;
+  }
+}
+
+renderUsers();
+refreshAll();
+</script>
+</body>
+</html>
