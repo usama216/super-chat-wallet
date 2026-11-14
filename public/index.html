@@ -63,7 +63,8 @@
       <button onclick="goLive()">Go live</button>
       <button class="grey" onclick="watch()">Watch</button>
     </div>
-    <p class="muted">"Go live" as the creator, "Watch" as anyone. The feed refreshes every 3 seconds.</p>
+    <p class="muted">"Go live" as the creator, or click a stream below to watch it. The feed refreshes every 3 seconds.</p>
+    <table id="streams"></table>
   </section>
 
   <section>
@@ -181,10 +182,26 @@ const retryBuy = run(async () => {
 const goLive = run(async () => {
   await api('POST', '/streams', { id: $('streamId').value.trim() });
   watch();
+  loadStreams();
 });
+
+async function loadStreams() {
+  const list = await api('GET', '/streams');
+  $('streams').innerHTML = list.length
+    ? '<tr><th>Stream</th><th>Creator</th><th>Super Chats</th><th></th></tr>' +
+      list.map((s) => `<tr><td>${esc(s.id)}</td><td>${esc(s.creatorName)}</td><td>${s.superChats}</td>
+        <td><button class="grey" onclick="watchStream('${s.id}')">Watch</button></td></tr>`).join('')
+    : '<tr><td class="muted">No streams yet</td></tr>';
+}
+
+function watchStream(id) {
+  $('streamId').value = id;
+  watch();
+}
 
 function watch() {
   watching = $('streamId').value.trim();
+  $('feed').scrollIntoView({ behavior: 'smooth', block: 'center' });
   $('feedTitle').textContent = '(' + watching + ')';
   clearInterval(timer);
   loadFeed();
@@ -278,6 +295,7 @@ async function refreshAll() {
         wallet.entries.map((e) => `<tr><td>${e.kind}</td><td class="${e.amount < 0 ? 'err' : 'ok'}">${e.amount > 0 ? '+' : ''}${e.amount}</td><td>${new Date(e.createdAt).toLocaleString()}</td></tr>`).join('')
       : '<tr><td class="muted">No entries yet</td></tr>';
     await loadMyPayouts();
+    loadStreams();
     loadFeed();
   } catch (e) {
     $('balances').textContent = e.message;

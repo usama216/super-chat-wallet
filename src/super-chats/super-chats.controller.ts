@@ -77,6 +77,12 @@ export class SuperChatsController {
     return this.streams.create(user.id, dto.id);
   }
 
+  @Get()
+  @ApiOperation({ summary: 'List streams (latest first)' })
+  listStreams() {
+    return this.streams.list();
+  }
+
   @Get(':streamId')
   @ApiOperation({ summary: 'Get a stream' })
   getStream(@Param('streamId') streamId: string) {

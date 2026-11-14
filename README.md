@@ -119,6 +119,7 @@ curl -s localhost:3000/me -H "x-user-id: $V"    # wallet: 10
 | `POST /wallet/purchases` | user | **Idempotency-Key required.** `{amount}`, 1–1,000,000 |
 | `GET /wallet` | user | Balance and the latest ledger entries (statement) |
 | `POST /streams` | user | `{id}`. The caller becomes the stream's creator. |
+| `GET /streams` | user | Latest streams with creator name and Super Chat count |
 | `POST /streams/:id/super-chats` | user | **Idempotency-Key required.** `{message, amount}`. 402 if the wallet is short. |
 | `GET /streams/:id/super-chats?afterSeq=&limit=` | user | History in sequence order |
 | `GET /streams/:id/pinned` | user | Currently pinned, biggest first |

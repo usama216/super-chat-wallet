@@ -34,6 +34,20 @@ export class StreamsService {
     return rows[0].lastSeq;
   }
 
+  /** Latest streams first, with the creator's name and how many super chats they have. */
+  async list(limit = 50) {
+    const { rows } = await this.db.query<Stream & { creatorName: string; superChats: number }>(
+      `SELECT s.id, s.creator_id AS "creatorId", u.display_name AS "creatorName",
+              s.last_seq AS "superChats", s.created_at AS "createdAt"
+         FROM streams s
+         JOIN users u ON u.id = s.creator_id
+        ORDER BY s.created_at DESC
+        LIMIT $1`,
+      [limit],
+    );
+    return rows;
+  }
+
   async get(streamId: string): Promise<Stream> {
     const { rows } = await this.db.query<Stream>(
       `SELECT id, creator_id AS "creatorId", created_at AS "createdAt" FROM streams WHERE id = $1`,
