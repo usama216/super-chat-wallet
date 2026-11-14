@@ -1,5 +1,9 @@
 import { applyDecorators, INestApplication } from '@nestjs/common';
 import { ApiHeader, ApiResponse, DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { IS_SERVERLESS } from './config/app-config';
+
+// Same version as the swagger-ui-dist package installed with @nestjs/swagger.
+const SWAGGER_UI_CDN = 'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.34.1';
 
 export const USER_ID_AUTH = 'x-user-id';
 
@@ -53,5 +57,10 @@ export function setupSwagger(app: INestApplication): void {
   SwaggerModule.setup('docs', app, document, {
     // persistAuthorization keeps the entered x-user-id across reloads
     swaggerOptions: { persistAuthorization: true, displayRequestDuration: true },
+    // Serverless functions don't serve swagger-ui-dist's static files, so load them from a CDN.
+    ...(IS_SERVERLESS && {
+      customCssUrl: `${SWAGGER_UI_CDN}/swagger-ui.css`,
+      customJs: [`${SWAGGER_UI_CDN}/swagger-ui-bundle.js`, `${SWAGGER_UI_CDN}/swagger-ui-standalone-preset.js`],
+    }),
   });
 }

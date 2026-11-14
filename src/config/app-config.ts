@@ -5,7 +5,15 @@ export interface AppConfig {
   port: number;
   /** Platform fee in basis points (2000 = 20%), keeps the fee math in integers. */
   platformFeeBps: number;
+  /** Max pg connections per process. Kept small on serverless, where many instances may run. */
+  dbPoolMax: number;
 }
+
+/**
+ * Vercel sets VERCEL=1 in its runtime. There the app runs as a serverless function: no
+ * long-lived connections, so the WebSocket gateway and the LISTEN connection are disabled.
+ */
+export const IS_SERVERLESS = Boolean(process.env.VERCEL);
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -30,6 +38,7 @@ export function loadConfig(): AppConfig {
     databaseUrl: requireEnv('DATABASE_URL'),
     port: intEnv('PORT', 3000, 1, 65535),
     platformFeeBps: intEnv('PLATFORM_FEE_BPS', 2000, 0, 10000),
+    dbPoolMax: intEnv('DB_POOL_MAX', IS_SERVERLESS ? 2 : 20, 1, 100),
   };
 }
 

@@ -1,6 +1,7 @@
 import { Module, ValidationPipe } from '@nestjs/common';
 import { APP_PIPE } from '@nestjs/core';
 import { AdminModule } from './admin/admin.module';
+import { IS_SERVERLESS } from './config/app-config';
 import { DatabaseModule } from './database/database.module';
 import { HealthController } from './health/health.controller';
 import { PayoutsModule } from './payouts/payouts.module';
@@ -17,7 +18,9 @@ import { WalletModule } from './wallet/wallet.module';
     SuperChatsModule,
     PayoutsModule,
     AdminModule,
-    RealtimeModule,
+    // WebSocket + LISTEN need a long-running process, which serverless doesn't have.
+    // Super Chats still call pg_notify; with no listener the event is simply dropped.
+    ...(IS_SERVERLESS ? [] : [RealtimeModule]),
   ],
   controllers: [HealthController],
   providers: [

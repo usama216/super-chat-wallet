@@ -25,7 +25,7 @@ export class DatabaseService implements OnModuleDestroy {
   readonly pool: Pool;
 
   constructor(@Inject(APP_CONFIG) config: AppConfig) {
-    this.pool = new Pool({ connectionString: config.databaseUrl, max: 20 });
+    this.pool = new Pool({ connectionString: config.databaseUrl, max: config.dbPoolMax });
     this.pool.on('error', (err) => this.logger.error(`Idle pg client error: ${err.message}`));
   }
 
