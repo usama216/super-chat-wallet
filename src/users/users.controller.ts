@@ -26,6 +26,13 @@ export class UsersController {
     return this.users.create(dto.displayName);
   }
 
+  // Auth is mocked, so listing users is open like sign-up. Lets the test UI switch users.
+  @Get('users')
+  @ApiOperation({ summary: 'List users (latest first)' })
+  list() {
+    return this.users.list();
+  }
+
   @Get('me')
   @UseGuards(AuthGuard)
   @ApiSecurity(USER_ID_AUTH)

@@ -36,6 +36,16 @@ export class UsersService {
     });
   }
 
+  /** Latest users first. Used by the test UI to switch between users. */
+  async list(limit = 200): Promise<User[]> {
+    const { rows } = await this.db.query<User>(
+      `SELECT id, display_name AS "displayName", role, created_at AS "createdAt"
+         FROM users ORDER BY created_at DESC LIMIT $1`,
+      [limit],
+    );
+    return rows;
+  }
+
   async findById(id: string): Promise<User | null> {
     const { rows } = await this.db.query<User>(
       `SELECT id, display_name AS "displayName", role, created_at AS "createdAt"

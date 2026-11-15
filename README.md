@@ -115,6 +115,7 @@ curl -s localhost:3000/me -H "x-user-id: $V"    # wallet: 10
 | Method & path | Who | Notes |
 |---|---|---|
 | `POST /users` | anyone | Sign-up stand-in. Always creates role `user`. |
+| `GET /users` | anyone | List users, so the test UI can switch between them (auth is mocked) |
 | `GET /me` | user | Profile plus `wallet` and `earnings` balances |
 | `POST /wallet/purchases` | user | **Idempotency-Key required.** `{amount}`, 1–1,000,000 |
 | `GET /wallet` | user | Balance and the latest ledger entries (statement) |
