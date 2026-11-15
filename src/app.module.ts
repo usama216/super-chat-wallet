@@ -1,6 +1,7 @@
 import { Module, ValidationPipe } from '@nestjs/common';
 import { APP_PIPE } from '@nestjs/core';
 import { AdminModule } from './admin/admin.module';
+import { ChatModule } from './chat/chat.module';
 import { IS_SERVERLESS } from './config/app-config';
 import { DatabaseModule } from './database/database.module';
 import { HealthController } from './health/health.controller';
@@ -17,6 +18,7 @@ import { WalletModule } from './wallet/wallet.module';
     UsersModule,
     WalletModule,
     SuperChatsModule,
+    ChatModule,
     PayoutsModule,
     AdminModule,
     // WebSocket + LISTEN need a long-running process, which serverless doesn't have.

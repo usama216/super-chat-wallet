@@ -124,6 +124,8 @@ curl -s localhost:3000/me -H "x-user-id: $V"    # wallet: 10
 | `POST /streams/:id/super-chats` | user | **Idempotency-Key required.** `{message, amount}`. 402 if the wallet is short. |
 | `GET /streams/:id/super-chats?afterSeq=&limit=` | user | History in sequence order |
 | `GET /streams/:id/pinned` | user | Currently pinned, biggest first |
+| `POST /streams/:id/messages` | user | Free chat message `{text}` (1–300 chars). No coins, no ledger entry. |
+| `GET /streams/:id/messages?limit=` | user | Latest chat messages on a live, oldest first |
 | `POST /payouts` / `GET /payouts` | user | **Idempotency-Key required.** `{amount}` from earnings |
 | `POST /admin/super-chats/:id/reversal` | admin | Full refund. Repeating it is a no-op. |
 | `GET /admin/payouts?status=` | admin | |

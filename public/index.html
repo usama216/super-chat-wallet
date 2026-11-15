@@ -198,25 +198,39 @@
 
   .chat { position: absolute; z-index: 2; left: 12px; right: 76px; bottom: 76px; max-height: 40%; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; overflow: hidden;
     -webkit-mask-image: linear-gradient(transparent, #000 28%); mask-image: linear-gradient(transparent, #000 28%); }
-  .msg { display: flex; gap: 8px; align-items: flex-start; background: rgba(10, 8, 16, .42); border-radius: 14px; padding: 6px 10px 6px 6px; width: fit-content; max-width: 100%; animation: drop .3s ease; backdrop-filter: blur(6px); }
+  .msg { flex: none; display: flex; gap: 8px; align-items: flex-start; border-radius: 14px; padding: 6px 10px 6px 6px; width: fit-content; max-width: 100%; }
+  .msg.enter { animation: drop .3s ease; }
   .msg .body { min-width: 0; font-size: 12.5px; line-height: 1.35; }
-  .msg .body b { color: rgba(255, 255, 255, .7); font-weight: 600; margin-right: 4px; }
-  .msg .gift { font-weight: 700; }
-  .msg .text { display: block; color: rgba(255, 255, 255, .92); word-wrap: break-word; }
-  .msg .val { display: inline-flex; align-items: center; gap: 3px; font-family: var(--mono); font-size: 11px; color: var(--coin); font-weight: 700; margin-left: 4px; }
-  .msg.big { background: linear-gradient(90deg, rgba(255, 61, 113, .45), rgba(255, 143, 61, .35)); }
-  .msg.refunded { opacity: .5; }
+  .msg .text { display: block; color: rgba(255, 255, 255, .95); word-wrap: break-word; }
+  /* plain chat: light, no coins */
+  .msg.talk { background: rgba(10, 8, 16, .34); }
+  .msg.talk .body b { color: hsl(var(--h) 85% 74%); font-weight: 700; margin-right: 4px; }
+  .msg.talk .hosttag { font-size: 9.5px; font-weight: 800; letter-spacing: .06em; background: var(--hot); color: #fff; padding: 1px 5px; border-radius: 4px; margin-right: 4px; vertical-align: 1px; }
+  .msg.talk .text { display: inline; }
+  .msg.hello .text { color: rgba(255, 255, 255, .7); }
+  /* gift: warm card with the gift and its coins */
+  .msg.giftmsg { background: linear-gradient(90deg, rgba(255, 61, 113, .32), rgba(255, 143, 61, .22)); border: 1px solid rgba(255, 197, 61, .35); padding: 6px 12px 6px 8px; }
+  .msg.giftmsg.big { background: linear-gradient(90deg, rgba(255, 61, 113, .62), rgba(255, 143, 61, .45)); border-color: rgba(255, 197, 61, .7); }
+  .msg.giftmsg .ge { font-size: 24px; line-height: 1; flex: none; }
+  .msg.giftmsg .body b { color: #fff; font-weight: 700; margin-right: 4px; }
+  .msg.giftmsg .gift { font-weight: 600; color: rgba(255, 255, 255, .9); }
+  .msg .val { display: inline-flex; align-items: center; gap: 3px; font-family: var(--mono); font-size: 11px; color: var(--coin); font-weight: 700; margin-left: 6px; }
+  .msg .rf { display: none; font-size: 10px; font-weight: 800; color: var(--danger); margin-left: 6px; letter-spacing: .05em; }
+  .msg.refunded { opacity: .55; }
+  .msg.refunded .rf { display: inline; }
   .msg.refunded .gift, .msg.refunded .text { text-decoration: line-through; }
-  .msg .rf { font-size: 10px; font-weight: 800; color: var(--danger); margin-left: 4px; letter-spacing: .05em; }
 
   .room-bottom { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; padding: 10px 12px 18px; display: flex; gap: 8px; align-items: center; }
-  .say { flex: 1; min-width: 0; background: var(--glass); border: 1px solid var(--glass-line); border-radius: 999px; padding: 11px 14px; outline: none; backdrop-filter: blur(8px); }
+  .sayform { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; background: var(--glass); border: 1px solid var(--glass-line); border-radius: 999px; padding: 4px 4px 4px 14px; backdrop-filter: blur(8px); }
+  .sayform:focus-within { border-color: rgba(255, 255, 255, .35); }
+  .say { flex: 1; min-width: 0; background: transparent; border: 0; padding: 7px 0; outline: none; }
   .say::placeholder { color: rgba(255, 255, 255, .55); }
+  .sendbtn { width: 34px; height: 34px; border-radius: 50%; border: 0; flex: none; display: grid; place-items: center; font-size: 15px; background: var(--text); color: var(--ink); transition: opacity .2s, transform .1s; }
+  .sendbtn:disabled { opacity: .25; cursor: default; }
+  .sendbtn:not(:disabled):active { transform: scale(.92); }
+  .giftnote { width: 100%; box-sizing: border-box; margin-bottom: 14px; }
   .giftbtn { width: 46px; height: 46px; border-radius: 50%; border: 0; font-size: 22px; display: grid; place-items: center; flex: none;
     background: linear-gradient(135deg, var(--hot), var(--hot-2)); box-shadow: 0 6px 18px rgba(255, 61, 113, .45); animation: nudge 3.5s ease-in-out infinite; }
-  .host-bar { flex: 1; display: flex; justify-content: space-between; align-items: center; gap: 10px; background: var(--glass); border: 1px solid var(--glass-line); border-radius: 16px; padding: 10px 14px; backdrop-filter: blur(8px); }
-  .host-bar b { font-size: 16px; display: flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
-  .host-bar span { font-size: 11px; color: rgba(255, 255, 255, .7); }
 
   /* gift fx */
   .fx { position: absolute; inset: 0; z-index: 4; pointer-events: none; overflow: hidden; }
@@ -559,7 +573,7 @@ async function api(method, path, { as, body, key } = {}) {
 }
 
 const mock = (() => {
-  const db = { users: [], streams: [], chats: [], payouts: [], purchases: [], entries: [] };
+  const db = { users: [], streams: [], chats: [], payouts: [], purchases: [], entries: [], messages: [] };
   const W = (id) => 'W:' + id;
   const E = (id) => 'E:' + id;
   const iso = (msAgo = 0) => new Date(Date.now() - msAgo).toISOString();
@@ -619,6 +633,14 @@ const mock = (() => {
     chat(s2, ayesha, giftText(GIFTS[1], 3, ''), 15, 6e5);
     chat(s3, ayesha, giftText(GIFTS[0], 10, 'namaste 🙏'), 10, 8e5);
     chat(s4, omar, giftText(GIFTS[5], 1, 'speedrun it!'), 250, 2e5);
+    const say = (s, u, text, msAgo) => db.messages.push({ id: db.messages.length + 1, streamId: s.id, senderId: u.id, text, createdAt: iso(msAgo) });
+    say(s1, ayesha, 'hi everyone 👋', 2.1e6);
+    say(s1, sana, 'welcome in! request a song', 1.9e6);
+    say(s1, omar, 'this guitar sounds amazing', 1.0e6);
+    say(s1, ayesha, 'can you play it again?', 60e3);
+    say(s2, omar, 'that looks so good', 1.3e6);
+    say(s3, ayesha, 'good morning!', 8.5e5);
+    say(s4, omar, 'gg', 2.5e5);
     const p = { id: uuid(), creatorId: sana.id, amount: 500, status: 'REQUESTED', createdAt: iso(3e5), processedAt: null, key: uuid() };
     db.payouts.push(p);
     post('PAYOUT_REQUESTED', p.id, [[E(sana.id), -500], ['HOLD', 500]], p.createdAt);
@@ -678,6 +700,18 @@ const mock = (() => {
       }
       const s = db.streams.find((x) => x.id === seg[1]);
       if (!s) fail(404, `Stream ${seg[1]} not found`);
+      if (seg[2] === 'messages' && method === 'POST') {
+        const u = me();
+        const text = String(body?.text ?? '').trim();
+        if (!text || text.length > 300) fail(400, 'text must be 1-300 characters');
+        const m = { id: db.messages.length + 1, streamId: s.id, senderId: u.id, text, createdAt: iso() };
+        db.messages.push(m);
+        return ok(m, 201);
+      }
+      if (seg[2] === 'messages') {
+        const limit = Number(q.get('limit') || 50);
+        return ok(db.messages.filter((m) => m.streamId === s.id).slice(-limit));
+      }
       if (seg[2] === 'super-chats' && method === 'POST') {
         const u = me();
         const amount = Number(body?.amount);
@@ -941,9 +975,11 @@ async function enterRoom(id) {
   if (!s) return toast('That live has ended', true);
   S.room = id;
   S.chats = [];
+  S.msgs = [];
   S.lastSeq = 0;
   S.seen = new Set();
   S.pinned = [];
+  S.pinKey = '';
   S.pollN = 0;
   go('room');
   $('roomBg').style.setProperty('--h', hue(id));
@@ -956,7 +992,13 @@ async function enterRoom(id) {
   $('chat').innerHTML = '';
   $('pinnedSlot').innerHTML = '';
   $('fx').innerHTML = '';
-  renderRoomBottom();
+  $('roomBottom').innerHTML = `
+    <form class="sayform" id="sayForm" onsubmit="sendChat(event)">
+      <input class="say" id="say" placeholder="${isHost() ? 'Talk to your viewers…' : 'Say something…'}" maxlength="300" autocomplete="off" oninput="$('sendChatBtn').disabled = !this.value.trim()">
+      <button class="sendbtn" id="sendChatBtn" type="submit" aria-label="Send message" disabled>➤</button>
+    </form>
+    ${isHost() ? '' : '<button class="giftbtn" onclick="openGifts()" aria-label="Send a gift">🎁</button>'}`;
+  renderRoomHeader();
   await pollRoom(true);
   roomTimer = setInterval(() => pollRoom(false), 2000);
   renderTools();
@@ -971,18 +1013,16 @@ function leaveRoom() {
 
 const isHost = () => S.room && streamOf(S.room)?.creatorId === S.me?.id;
 
-function renderRoomBottom() {
-  if (isHost()) {
-    const earned = S.chats.filter((c) => c.status !== 'REVERSED').reduce((sum, c) => sum + c.creatorAmount, 0);
-    $('roomBottom').innerHTML = `<div class="host-bar"><div><span>You're live · earned on this live</span><b>${coin} ${fmt(earned)}</b></div>
-      <div style="text-align:right"><span>Gifts</span><b style="justify-content:flex-end">${S.chats.filter((c) => c.status !== 'REVERSED').length}</b></div></div>`;
-  } else if (!$('say')) {
-    $('roomBottom').innerHTML = `<input class="say" id="say" placeholder="Add a message to your gift…" maxlength="120">
-      <button class="giftbtn" onclick="openGifts()" aria-label="Send a gift">🎁</button>`;
-  }
+function renderRoomHeader() {
   const s = streamOf(S.room);
-  const total = S.chats.filter((c) => c.status !== 'REVERSED').length;
-  $('pillSub').textContent = `🎁 ${fmt(total)} gift${total === 1 ? '' : 's'}`;
+  const kept = S.chats.filter((c) => c.status !== 'REVERSED');
+  const gifts = `🎁 ${fmt(kept.length)} gift${kept.length === 1 ? '' : 's'}`;
+  if (isHost()) {
+    const earned = kept.reduce((sum, c) => sum + c.creatorAmount, 0);
+    $('pillSub').innerHTML = `${gifts} · you earned ${coin} ${fmt(earned)}`;
+  } else {
+    $('pillSub').textContent = gifts;
+  }
   $('heroText').textContent = isHost() ? 'You are live' : `${s?.creatorName || ''} is live`;
 }
 
@@ -993,9 +1033,10 @@ async function pollRoom(first) {
   S.pollN++;
   try {
     const full = first || S.pollN % 4 === 0;
-    const [list, pins] = await Promise.all([
+    const [list, pins, msgs] = await Promise.all([
       api('GET', `${base}/super-chats?afterSeq=${full ? 0 : S.lastSeq}&limit=200`, { as: ADMIN_ID }),
       api('GET', `${base}/pinned`, { as: ADMIN_ID }),
+      api('GET', `${base}/messages?limit=50`, { as: ADMIN_ID }),
     ]);
     if (S.room !== id) return;
     const fresh = [];
@@ -1004,42 +1045,81 @@ async function pollRoom(first) {
       if (i >= 0) S.chats[i] = c; else { S.chats.push(c); fresh.push(c); }
       S.lastSeq = Math.max(S.lastSeq, c.streamSeq);
     }
-    S.chats.sort((a, b) => a.streamSeq - b.streamSeq);
-    if (fresh.some((c) => !S.users.some((u) => u.id === c.senderId))) await loadUsers();
+    for (const m of msgs.data) if (!S.msgs.some((x) => x.id === m.id)) S.msgs.push(m);
+    const senders = [...fresh, ...msgs.data].map((x) => x.senderId);
+    if (senders.some((sid) => !S.users.some((u) => u.id === sid))) await loadUsers();
     if (!first) fresh.filter((c) => !S.seen.has(c.id)).forEach(animateGift);
     fresh.forEach((c) => S.seen.add(c.id));
     S.pinned = pins.data;
-    renderChat();
+    syncFeed();
     renderPinned();
-    renderRoomBottom();
+    renderRoomHeader();
     if (S.pollN % 2 === 0) loadMe();
   } catch {}
 }
 
-function renderChat() {
-  const last = S.chats.slice(-30);
-  $('chat').innerHTML = last.length ? last.map((c) => {
+// The chat is updated in place: new lines are appended and only they animate,
+// existing lines just get their state (refunded) toggled. No flicker on refresh.
+function feedItems() {
+  const gifts = S.chats.map((c) => ({ key: 'g' + c.id, at: c.createdAt, kind: 'gift', c }));
+  const chats = S.msgs.map((m) => ({ key: 'm' + m.id, at: m.createdAt, kind: 'chat', m }));
+  return [...gifts, ...chats].sort((a, b) => a.at.localeCompare(b.at)).slice(-40);
+}
+
+function feedNode(item) {
+  const el = document.createElement('div');
+  el.dataset.key = item.key;
+  const hostId = streamOf(S.room)?.creatorId;
+  if (item.kind === 'chat') {
+    const name = nameOf(item.m.senderId);
+    el.className = 'msg talk enter';
+    el.innerHTML = `${av(name, 'sm')}<div class="body"><b style="--h:${hue(name)}">${esc(name)}</b>${item.m.senderId === hostId ? '<span class="hosttag">HOST</span>' : ''}<span class="text">${esc(item.m.text)}</span></div>`;
+  } else {
+    const c = item.c;
     const g = parseGift(c.message);
     const name = nameOf(c.senderId);
-    const refunded = c.status === 'REVERSED';
-    return `<div class="msg ${c.amount >= 200 ? 'big' : ''} ${refunded ? 'refunded' : ''}">${av(name, 'sm')}
-      <div class="body"><b>${esc(name)}</b><span class="gift">sent ${esc(g.emoji)} ${esc(g.name)}${g.qty > 1 ? ' ×' + g.qty : ''}</span><span class="val">${coin}${fmt(c.amount)}</span>${refunded ? '<span class="rf">REFUNDED</span>' : ''}
-      ${g.text ? `<span class="text">${esc(g.text)}</span>` : ''}</div></div>`;
-  }).join('') : '<div class="msg"><div class="body"><span class="text">Be the first to send a gift 🎁</span></div></div>';
+    el.className = `msg giftmsg enter ${c.amount >= 200 ? 'big' : ''}`;
+    el.innerHTML = `<span class="ge">${esc(g.emoji)}</span><div class="body"><b>${esc(name)}</b><span class="gift">sent ${esc(g.name)}${g.qty > 1 ? ' ×' + g.qty : ''}</span><span class="val">${coin}${fmt(c.amount)}</span><span class="rf">REFUNDED</span>
+      ${g.text ? `<span class="text">${esc(g.text)}</span>` : ''}</div>`;
+  }
+  return el;
+}
+
+function syncFeed() {
+  const box = $('chat');
+  const items = feedItems();
+  if (!items.length) {
+    if (!box.querySelector('.hello')) box.innerHTML = '<div class="msg talk hello"><div class="body"><span class="text">Say hi or send the first gift 🎁</span></div></div>';
+    return;
+  }
+  box.querySelector('.hello')?.remove();
+  const existing = new Map([...box.children].map((n) => [n.dataset.key, n]));
+  items.forEach((item, i) => {
+    const node = existing.get(item.key) || feedNode(item);
+    if (item.kind === 'gift') node.classList.toggle('refunded', item.c.status === 'REVERSED');
+    if (box.children[i] !== node) box.insertBefore(node, box.children[i] || null);
+  });
+  while (box.children.length > items.length) box.firstElementChild.remove();
 }
 
 function renderPinned() {
-  const live = S.pinned.filter((p) => new Date(p.pinnedUntil) > Date.now());
-  if (!live.length) { $('pinnedSlot').innerHTML = ''; return; }
-  const p = live[0];
-  const g = parseGift(p.message);
-  const total = new Date(p.pinnedUntil) - new Date(p.createdAt);
-  const left = new Date(p.pinnedUntil) - Date.now();
-  $('pinnedSlot').innerHTML = `<div class="pinned" data-until="${p.pinnedUntil}" data-total="${total}">
-    <span class="gift-emoji">${esc(g.emoji)}</span>
-    <div class="txt"><b>${esc(nameOf(p.senderId))} · ${esc(g.name)}${g.qty > 1 ? ' ×' + g.qty : ''} · ${fmt(p.amount)} coins</b><span>${esc(g.text || 'Pinned to the top of the live')}</span></div>
-    <div style="text-align:right"><div class="left">${clock(left)}</div>${live.length > 1 ? `<div class="more">+${live.length - 1} more</div>` : ''}</div>
-    <div class="bar" style="width:${(left / total) * 100}%"></div></div>`;
+  const live = S.pinned.filter((p) => p.status !== 'REVERSED' && new Date(p.pinnedUntil) > Date.now());
+  const top = live[0];
+  const key = top ? top.id : '';
+  if (key !== S.pinKey) {
+    S.pinKey = key;
+    if (!top) { $('pinnedSlot').innerHTML = ''; return; }
+    const g = parseGift(top.message);
+    const total = new Date(top.pinnedUntil) - new Date(top.createdAt);
+    const left = new Date(top.pinnedUntil) - Date.now();
+    $('pinnedSlot').innerHTML = `<div class="pinned" data-until="${top.pinnedUntil}" data-total="${total}">
+      <span class="gift-emoji">${esc(g.emoji)}</span>
+      <div class="txt"><b>${esc(nameOf(top.senderId))} · ${esc(g.name)}${g.qty > 1 ? ' ×' + g.qty : ''} · ${fmt(top.amount)} coins</b><span>${esc(g.text || 'Pinned to the top of the live')}</span></div>
+      <div style="text-align:right"><div class="left">${clock(left)}</div><div class="more"></div></div>
+      <div class="bar" style="width:${(left / total) * 100}%"></div></div>`;
+  }
+  const more = document.querySelector('.pinned .more');
+  if (more) more.textContent = live.length > 1 ? `+${live.length - 1} more` : '';
 }
 
 function clock(ms) {
@@ -1051,7 +1131,7 @@ setInterval(() => {
   const el = document.querySelector('.pinned');
   if (!el) return;
   const left = new Date(el.dataset.until) - Date.now();
-  if (left <= 0) return renderPinned();
+  if (left <= 0) { S.pinKey = null; return renderPinned(); }
   el.querySelector('.left').textContent = clock(left);
   el.querySelector('.bar').style.width = (left / Number(el.dataset.total)) * 100 + '%';
 }, 1000);
@@ -1115,20 +1195,44 @@ function animateGift(c) {
 function addChat(c) {
   if (!S.chats.some((x) => x.id === c.id)) S.chats.push(c);
   S.chats.sort((a, b) => a.streamSeq - b.streamSeq);
-  renderChat();
-  renderRoomBottom();
+  syncFeed();
+  renderRoomHeader();
+}
+
+async function sendChat(e) {
+  e.preventDefault();
+  const input = $('say');
+  const text = input.value.trim();
+  if (!text) return;
+  const btn = $('sendChatBtn');
+  await busy(btn, async () => {
+    const { data } = await api('POST', `/streams/${encodeURIComponent(S.room)}/messages`, { as: S.me.id, body: { text } });
+    if (!S.msgs.some((m) => m.id === data.id)) S.msgs.push(data);
+    input.value = '';
+    btn.disabled = true;
+    syncFeed();
+  });
+  input.focus();
 }
 
 // ---------- gifts ----------
+// Updates an open sheet in place (no slide-in again), or opens it.
+function setSheet(html) {
+  const sheet = document.querySelector('#sheetSlot .sheet');
+  if (sheet) sheet.innerHTML = '<div class="grab"></div>' + html;
+  else openSheet(html);
+}
+
 function openGifts() {
   const g = GIFTS[S.gift];
   const total = g.price * S.qty;
   const short = total > S.wallet;
-  openSheet(`
+  setSheet(`
     <div class="sheet-head"><div><h4>Send a gift</h4><p class="sub" style="margin:0">Creator gets 80%. Bigger gifts stay pinned longer.</p></div>
       <button class="coinchip" onclick="openRecharge()" style="background:var(--ink-3)"><span class="coin"></span>${fmt(S.wallet)}<span class="plus">+</span></button></div>
     <div class="gifts">${GIFTS.map((x, i) => `<button class="gift-tile ${i === S.gift ? 'on' : ''}" onclick="pickGift(${i})"><span class="e">${x.emoji}</span><b>${x.name}</b><span>${coin}${fmt(x.price)}</span></button>`).join('')}</div>
     <div class="qty"><span>Amount</span>${[1, 5, 10, 99].map((n) => `<button class="${n === S.qty ? 'on' : ''}" onclick="pickQty(${n})">×${n}</button>`).join('')}</div>
+    <input class="field giftnote" id="giftNote" placeholder="Add a message to your gift (optional)" maxlength="120" value="${esc(S.giftNote || '')}" oninput="S.giftNote = this.value">
     <div class="sendrow">
       <div class="total">Total<b>${coin}${fmt(total)}</b></div>
       ${short
@@ -1143,15 +1247,14 @@ function pickQty(n) { S.qty = n; openGifts(); }
 async function sendGift(btn) {
   const g = GIFTS[S.gift];
   const amount = g.price * S.qty;
-  const text = $('say')?.value.trim() || '';
-  const message = giftText(g, S.qty, text);
+  const message = giftText(g, S.qty, (S.giftNote || '').trim());
   const path = `/streams/${encodeURIComponent(S.room)}/super-chats`;
   const s = streamOf(S.room);
   await busy(btn, async () => {
     try {
       const r = await api('POST', path, { as: S.me.id, body: { message, amount }, key: uuid() });
       closeSheet();
-      if ($('say')) $('say').value = '';
+      S.giftNote = '';
       addChat(r.data);
       animateGift(r.data);
       ledger({
@@ -1161,7 +1264,6 @@ async function sendGift(btn) {
       await loadMe();
     } catch (e) {
       if (e.status !== 402) throw e;
-      closeSheet();
       ledger({ title: 'Gift blocked', kind: 'blocked', status: 402, path: '/streams/:id/super-chats', note: 'Not enough coins. The wallet was checked under a lock, so nothing moved.' });
       openRecharge();
       toast('Not enough coins. Recharge to send this gift.', true);
@@ -1171,9 +1273,12 @@ async function sendGift(btn) {
 
 // ---------- recharge ----------
 function openRecharge(need) {
-  if (need) S.pack = Math.max(0, PACKS.findIndex((p) => p.coins >= need));
+  if (need) {
+    const i = PACKS.findIndex((p) => p.coins >= need);
+    S.pack = i < 0 ? PACKS.length - 1 : i;
+  }
   const p = PACKS[S.pack];
-  openSheet(`
+  setSheet(`
     <div class="sheet-head"><div><h4>Recharge coins</h4><p class="sub" style="margin:0">Balance: ${fmt(S.wallet)} coins</p></div></div>
     <div class="packs">${PACKS.map((x, i) => `<button class="pack ${i === S.pack ? 'on' : ''}" onclick="pickPack(${i})">${x.tag ? `<span class="ribbon">${x.tag}</span>` : ''}<b>${coin}${fmt(x.coins)}</b><span>${x.price}</span></button>`).join('')}</div>
     <div class="card-line"><span class="brandbox"></span><div style="flex:1"><b>Test card •••• 4242</b><span>Payments are simulated in this demo</span></div></div>
@@ -1195,7 +1300,7 @@ async function pay(btn) {
       title: `Coins recharged · ${esc(S.me.displayName)}`, status: r.status, path: '/wallet/purchases',
       lines: [[`Card payment (${p.price})`, -p.coins], [`${S.me.displayName}'s coins`, p.coins]],
     });
-    openSheet(`<div class="success"><span class="burst">🪙</span><b>+${fmt(p.coins)} coins</b>
+    setSheet(`<div class="success"><span class="burst">🪙</span><b>+${fmt(p.coins)} coins</b>
       <p class="sub">Paid ${p.price}. New balance: ${fmt(S.wallet)} coins.</p>
       <button class="btn hot block" onclick="${S.screen === 'room' && !isHost() ? 'openGifts()' : 'closeSheet()'}">${S.screen === 'room' && !isHost() ? 'Send a gift' : 'Done'}</button></div>`);
     renderTools();
