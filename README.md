@@ -23,7 +23,7 @@ Requirements: Docker with Docker Compose.
 docker compose up --build          # Postgres + API on http://localhost:3000, WebSocket on ws://localhost:3000/ws
 ```
 
-**Test UI: http://localhost:3000/.** A simple page to try the whole flow from the browser (users, buying tokens, Super Chats, payouts, admin actions).
+**Live app: http://localhost:3000/.** A mobile live-gifting UI on top of the API: recharge coins, send gifts (Super Chats) on a live, withdraw earnings, and review as admin. The side panel shows the ledger entries behind every action. The admin console (approve withdrawals, refund Super Chats) is at http://localhost:3000/console.
 
 **Interactive API docs (Swagger): http://localhost:3000/docs.** Click **Authorize** to set `x-user-id`, then use "Try it out" on any endpoint.
 

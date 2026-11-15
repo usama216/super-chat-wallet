@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Super Chat Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f6fa;
+    --card: #ffffff;
+    --text: #151826;
+    --muted: #6b7185;
+    --line: #e6e8ef;
+    --brand: #5b5bf0;
+    --brand-soft: #eeeefe;
+    --green: #12a36b;
+    --green-soft: #e6f7ef;
+    --red: #e0434b;
+    --red-soft: #fdecec;
+    --amber: #d48806;
+    --amber-soft: #fff6e0;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 4px 16px rgba(16, 24, 40, .06);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.45; }
+  button, input { font: inherit; }
+
+  .topbar { position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .topbar-inner { max-width: 1040px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 16px; }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 17px; }
+  .logo-mark { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; background: linear-gradient(135deg, #5b5bf0, #b14ef0); color: #fff; font-size: 16px; }
+  .tabs { flex: 1; display: flex; justify-content: center; }
+  .tabs-inner { display: flex; gap: 4px; background: #f0f1f6; border-radius: 12px; padding: 4px; }
+  .tab { border: 0; background: transparent; padding: 8px 18px; border-radius: 9px; cursor: pointer; font-weight: 600; color: var(--muted); font-size: 14px; }
+  .tab:hover { color: var(--text); }
+  .tab.on { background: #fff; color: var(--text); box-shadow: 0 1px 3px rgba(16,24,40,.12); }
+  .toplink { color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 600; border: 1px solid var(--line); border-radius: 10px; padding: 7px 12px; white-space: nowrap; }
+  .toplink:hover { color: var(--text); background: #f0f1f6; }
+
+  .btn { border: 0; border-radius: 10px; padding: 10px 16px; cursor: pointer; font-weight: 600; background: var(--brand); color: #fff; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; transition: background .2s, opacity .2s; }
+  .btn:hover { background: #4a4ae0; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn.ghost:hover { background: #f0f1f6; }
+  .btn.green { background: var(--green); }
+  .btn.green:hover { background: #0e8c5b; }
+  .btn.red { background: var(--red); }
+  .btn.red:hover { background: #c7343c; }
+  .btn.small { padding: 6px 12px; font-size: 13px; border-radius: 8px; }
+  .btn.busy { pointer-events: none; opacity: .7; }
+
+  main { max-width: 1040px; margin: 0 auto; padding: 20px; }
+  .panel { display: none; }
+  .panel.on { display: block; }
+  .intro { margin: 4px 4px 16px; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+  .intro h1 { margin: 0 0 4px; font-size: 24px; letter-spacing: -.02em; }
+  .intro p { margin: 0; color: var(--muted); }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; margin-bottom: 14px; min-width: 0; }
+  .card h2 { font-size: 16px; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+  .card .sub { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+  .cards2 { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 14px; }
+  .cards2 .card { margin-bottom: 0; }
+
+  .chip { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 14px; cursor: pointer; font-weight: 600; font-size: 14px; }
+  .chip:hover { border-color: #c9c9fa; }
+  .chip.on { background: var(--brand-soft); border-color: var(--brand); color: var(--brand); }
+  .chip .n { font-size: 12px; color: var(--muted); margin-left: 4px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+  td { padding: 10px 6px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  tr:last-child td { border-bottom: 0; }
+  td.num { font-variant-numeric: tabular-nums; font-weight: 700; }
+  .when { color: var(--muted); font-size: 13px; white-space: nowrap; }
+  .table-wrap { max-height: 420px; overflow: auto; }
+  .badge { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .badge.REQUESTED { background: var(--amber-soft); color: var(--amber); }
+  .badge.PAID { background: var(--green-soft); color: var(--green); }
+  .badge.REJECTED, .badge.REVERSED { background: var(--red-soft); color: var(--red); }
+  .empty { color: var(--muted); font-size: 14px; padding: 10px 0; }
+  .actions { display: flex; gap: 6px; justify-content: flex-end; }
+
+  .result { margin-top: 12px; border-radius: 12px; padding: 12px 14px; font-size: 14px; background: var(--green-soft); color: #0b6b47; display: none; }
+  .result.show { display: block; animation: pop .25s ease; }
+  .result.warn { background: var(--amber-soft); color: #8a5a00; }
+  .result.bad { background: var(--red-soft); color: #a3262c; }
+  .flow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .flow span { background: rgba(255,255,255,.75); border-radius: 6px; padding: 2px 8px; font-size: 13px; font-weight: 600; }
+
+  .streamlist { display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; }
+  .srow { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; cursor: pointer; background: none; text-align: left; width: 100%; transition: border-color .15s, background .15s; }
+  .srow:hover { border-color: #c9c9fa; }
+  .srow.on { border-color: var(--brand); background: var(--brand-soft); }
+  .srow .info { flex: 1; min-width: 0; }
+  .srow b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+  .srow span { font-size: 12px; color: var(--muted); }
+  .srow .count { font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+
+  /* guided demo */
+  .progress { display: flex; gap: 6px; }
+  .progress span { height: 6px; width: 36px; border-radius: 3px; background: var(--line); transition: background .3s; }
+  .progress span.done { background: var(--brand); }
+  .progress span.current { background: #a5a5f7; }
+  .step { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 12px; box-shadow: var(--shadow); overflow: hidden; }
+  .step.active { border-color: #c9c9fa; }
+  .step.locked { opacity: .55; }
+  .step-head { display: flex; align-items: center; gap: 14px; padding: 16px 18px; cursor: pointer; user-select: none; }
+  .step.locked .step-head { cursor: default; }
+  .step-num { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; flex: none; font-weight: 700; font-size: 14px; background: #f0f1f6; color: var(--muted); }
+  .step.active .step-num { background: var(--brand); color: #fff; }
+  .step.done .step-num { background: var(--green); color: #fff; }
+  .step-title { flex: 1; }
+  .step-title b { display: block; font-size: 16px; }
+  .step-title span { color: var(--muted); font-size: 13px; }
+  .who { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; flex: none; }
+  .who.viewer { background: #e8f1ff; color: #2563eb; }
+  .who.creator { background: #f3e8ff; color: #9333ea; }
+  .who.admin { background: #fff1e6; color: #c2410c; }
+  .who.both { background: #f0f1f6; color: var(--muted); }
+  .step-body { display: none; padding: 0 18px 18px 64px; }
+  .step.active .step-body { display: block; }
+  .explain { color: var(--muted); margin: 0 0 14px; font-size: 14px; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; outline: none; }
+  .input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .hint { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .next-row { margin-top: 14px; display: flex; justify-content: flex-end; }
+  .sub-title { font-weight: 700; font-size: 14px; margin: 18px 0 6px; }
+  .finish { background: linear-gradient(135deg, #5b5bf0, #8b4ef0); color: #fff; border-radius: var(--radius); padding: 20px 22px; display: none; box-shadow: var(--shadow); }
+  .finish.show { display: block; animation: pop .3s ease; }
+  .finish h3 { margin: 0 0 10px; font-size: 18px; }
+  .finish ul { margin: 0 0 14px; padding-left: 18px; }
+  .finish li { margin-bottom: 6px; }
+  .finish .btn { background: #fff; color: var(--brand); }
+
+  .modal-back { position: fixed; inset: 0; background: rgba(15, 18, 32, .45); z-index: 40; display: grid; place-items: center; padding: 16px; }
+  .modal { background: var(--card); border-radius: 16px; padding: 22px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+  .modal h3 { margin: 0 0 6px; font-size: 18px; }
+  .modal p { margin: 0 0 18px; color: var(--muted); }
+
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0; background: #151826; color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 14px; z-index: 50; transition: all .25s; pointer-events: none; max-width: calc(100% - 32px); }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.bad { background: var(--red); }
+
+  @keyframes pop { from { opacity: 0; transform: scale(.99); } to { opacity: 1; transform: none; } }
+
+  @media (max-width: 760px) {
+    main { padding: 12px; }
+    .topbar-inner { flex-wrap: wrap; }
+    .tabs { order: 3; flex-basis: 100%; }
+    .logo { flex: 1; }
+    .cards2, .grid2 { grid-template-columns: 1fr; }
+    .step-body { padding: 0 16px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="logo"><div class="logo-mark">✦</div>Super Chat Console</div>
+    <div class="tabs"><div class="tabs-inner">
+      <button class="tab" data-tab="admin">Admin</button>
+      <button class="tab" data-tab="demo">Guided demo</button>
+    </div></div>
+    <a class="toplink" href="/">Open live app</a>
+  </div>
+</div>
+
+<main>
+  <!-- ================= ADMIN ================= -->
+  <section class="panel" id="panel-admin">
+    <div class="intro">
+      <div>
+        <h1>Admin</h1>
+        <p>Approve creator withdrawals and refund Super Chats.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Withdrawal requests</h2>
+      <p class="sub">Approve to pay the creator, or reject to return the coins to their earnings.</p>
+      <div class="chips" id="filters">
+        <button class="chip on" data-f="REQUESTED">Waiting <span class="n" id="nREQUESTED"></span></button>
+        <button class="chip" data-f="PAID">Paid <span class="n" id="nPAID"></span></button>
+        <button class="chip" data-f="REJECTED">Rejected <span class="n" id="nREJECTED"></span></button>
+        <button class="chip" data-f="">All <span class="n" id="nALL"></span></button>
+      </div>
+      <div class="table-wrap" id="payouts"></div>
+      <div class="result" id="resPayout"></div>
+    </div>
+
+    <div class="cards2">
+      <div class="card">
+        <h2>Lives</h2>
+        <p class="sub">Pick a live to review its Super Chats.</p>
+        <div class="streamlist" id="streams"></div>
+      </div>
+      <div class="card">
+        <h2>Super Chats <span class="when" id="chatsTarget"></span></h2>
+        <p class="sub">Refund sends every coin back to the viewer and takes back the creator's share and the platform fee.</p>
+        <div class="table-wrap" id="chats"></div>
+        <div class="result" id="resChat"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= GUIDED DEMO ================= -->
+  <section class="panel" id="panel-demo">
+    <div class="intro">
+      <div>
+        <h1>Guided demo</h1>
+        <p>The whole money flow in six steps. Each step is a real API call.</p>
+      </div>
+      <div class="row">
+        <div class="progress" id="progress"></div>
+        <button class="btn ghost small" onclick="resetDemo()">↺ Start over</button>
+      </div>
+    </div>
+
+    <div class="step" data-step="1">
+      <div class="step-head" onclick="openStep(1)">
+        <div class="step-num">1</div>
+        <div class="step-title"><b>Meet the people</b><span>A creator who streams and a viewer who supports them</span></div>
+        <div class="who both">Setup</div>
+      </div>
+      <div class="step-body">
+        <p class="explain">Every user gets a coin wallet and an earnings account. Balances are calculated from ledger entries, never stored as a number.</p>
+        <div class="grid2">
+          <div class="field"><label for="creatorName">Creator name</label><input class="input" id="creatorName" value="Cara"></div>
+          <div class="field"><label for="viewerName">Viewer name</label><input class="input" id="viewerName" value="Victor"></div>
+        </div>
+        <button class="btn" id="btnPeople" onclick="createPeople()">Create both users</button>
+        <div class="result" id="res1"></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="2">
+      <div class="step-head" onclick="openStep(2)">
+        <div class="step-num">2</div>
+        <div class="step-title"><b>Creator goes live</b><span>Start a live that viewers can watch</span></div>
+        <div class="who creator" id="who2">Creator</div>
+      </div>
+      <div class="step-body">
+        <p class="explain">Each Super Chat on a live gets the next sequence number, so everyone sees them in the same order.</p>
+        <div class="field"><label for="streamName">Live name</label><input class="input" id="streamName" placeholder="friday-live"></div>
+        <button class="btn" id="btnLive" onclick="goLive()">● Go live</button>
+        <div class="result" id="res2"></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="3">
+      <div class="step-head" onclick="openStep(3)">
+        <div class="step-num">3</div>
+        <div class="step-title"><b>Viewer buys coins</b><span>Mock card payment, coins land in the wallet</span></div>
+        <div class="who viewer" id="who3">Viewer</div>
+      </div>
+      <div class="step-body">
+        <p class="explain">Pay, then press <b>"Pay again (same request)"</b> to simulate a double click or a network retry.</p>
+        <div class="field"><label for="buyAmount">Coins</label><input class="input" id="buyAmount" type="number" min="1" value="500"></div>
+        <div class="row">
+          <button class="btn" id="btnBuy" onclick="buy()">Pay</button>
+          <button class="btn ghost" id="btnRetry" onclick="retryBuy()" disabled>⟳ Pay again (same request)</button>
+        </div>
+        <div class="result" id="res3"></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="4">
+      <div class="step-head" onclick="openStep(4)">
+        <div class="step-num">4</div>
+        <div class="step-title"><b>Viewer sends a Super Chat</b><span>A paid message on the live</span></div>
+        <div class="who viewer" id="who4">Viewer</div>
+      </div>
+      <div class="step-body">
+        <p class="explain">The creator gets 80% and the platform keeps 20%. Try an amount bigger than the balance too.</p>
+        <div class="grid2">
+          <div class="field"><label for="scMessage">Message</label><input class="input" id="scMessage" value="Love the live!" maxlength="500"></div>
+          <div class="field"><label for="scAmount">Coins</label><input class="input" id="scAmount" type="number" min="1" value="100"></div>
+        </div>
+        <button class="btn" id="btnSend" onclick="sendSuperChat()">Send Super Chat</button>
+        <div class="result" id="res4"></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="5">
+      <div class="step-head" onclick="openStep(5)">
+        <div class="step-num">5</div>
+        <div class="step-title"><b>Creator withdraws earnings</b><span>Request a payout of what they earned</span></div>
+        <div class="who creator" id="who5">Creator</div>
+      </div>
+      <div class="step-body">
+        <p class="explain">The amount is held right away, so the same coins can't be withdrawn twice while the request waits for approval.</p>
+        <div class="field"><label for="payoutAmount">Coins</label><input class="input" id="payoutAmount" type="number" min="1"><div class="hint" id="payoutHint"></div></div>
+        <button class="btn" id="btnPayout" onclick="requestPayout()">Request withdrawal</button>
+        <div class="result" id="res5"></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="6">
+      <div class="step-head" onclick="openStep(6)">
+        <div class="step-num">6</div>
+        <div class="step-title"><b>Admin review</b><span>Approve the withdrawal and refund a Super Chat</span></div>
+        <div class="who admin">Admin</div>
+      </div>
+      <div class="step-body">
+        <p class="explain">Approve or reject the withdrawal. To handle a dispute, refund a Super Chat: the viewer gets every coin back.</p>
+        <div class="sub-title">Withdrawal requests</div>
+        <div id="demoPayouts"></div>
+        <div class="sub-title">Super Chats on this live</div>
+        <div id="demoChats"></div>
+        <div class="result" id="res6"></div>
+      </div>
+    </div>
+
+    <div class="finish" id="finish">
+      <h3>✓ That's the full flow</h3>
+      <ul>
+        <li><b>Every coin is accounted for.</b> Each move is a double-entry ledger record that adds up to zero.</li>
+        <li><b>No double charges.</b> Retrying the same request returns the first result and charges nothing.</li>
+        <li><b>No overspending.</b> Wallets are locked while a payment runs, so the balance can't go below zero.</li>
+        <li><b>Refunds are clean.</b> A refund writes the exact opposite entries, so the history stays intact.</li>
+      </ul>
+      <button class="btn" onclick="resetDemo()">Run it again</button>
+    </div>
+  </section>
+</main>
+
+<div id="modalSlot"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const ADMIN_ID = '00000000-0000-0000-0000-00000000ad01';
+const STORE = 'superchat-console';
+
+let state = load();
+let users = [];
+let streams = [];
+let payouts = [];
+let chats = [];
+let filter = 'REQUESTED';
+let selected = null;
+let balances = {};
+
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => Number(n).toLocaleString('en-US');
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const when = (d) => new Date(d).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+const nameOf = (id) => (id === ADMIN_ID ? 'Admin' : users.find((u) => u.id === id)?.displayName || 'User ' + id.slice(0, 6));
+const flow = (items) => `<div class="flow">${items.map((i) => `<span>${i}</span>`).join('')}</div>`;
+const nextButton = (n) => `<div class="next-row"><button class="btn small" onclick="openStep(${n})">Next step →</button></div>`;
+const uuid = () => crypto.randomUUID();
+
+function load() {
+  const fresh = { tab: 'admin', step: 1, done: [], demo: null };
+  try { return { ...fresh, ...JSON.parse(localStorage.getItem(STORE)) }; } catch { return fresh; }
+}
+function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch {} }
+
+async function api(method, path, { as = ADMIN_ID, body, key } = {}) {
+  const headers = { 'content-type': 'application/json', 'x-user-id': as };
+  if (key) headers['Idempotency-Key'] = key;
+  const res = await fetch(path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    const err = new Error(Array.isArray(data?.message) ? data.message.join(', ') : data?.message || res.statusText);
+    err.status = res.status;
+    throw err;
+  }
+  return { data, replayed: res.headers.get('Idempotent-Replayed') === 'true' };
+}
+
+function toast(msg, bad) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (bad ? ' bad' : '');
+  clearTimeout(t._h);
+  t._h = setTimeout(() => (t.className = 'toast'), 3000);
+}
+
+function showResult(id, html, kind = '') {
+  $(id).className = 'result show ' + kind;
+  $(id).innerHTML = html;
+}
+
+async function busy(btn, fn) {
+  btn.classList.add('busy');
+  try { await fn(); } catch (e) { toast(e.message, true); } finally { btn.classList.remove('busy'); }
+}
+
+function confirmBox(title, text, label) {
+  return new Promise((resolve) => {
+    $('modalSlot').innerHTML = `<div class="modal-back"><div class="modal" role="dialog" aria-modal="true">
+      <h3>${title}</h3><p>${text}</p>
+      <div class="actions"><button class="btn ghost" id="mNo">Cancel</button><button class="btn red" id="mYes">${label}</button></div></div></div>`;
+    const close = (v) => { $('modalSlot').innerHTML = ''; resolve(v); };
+    $('mNo').onclick = () => close(false);
+    $('mYes').onclick = () => close(true);
+    $('mYes').focus();
+  });
+}
+
+function switchTab(tab) {
+  state.tab = tab;
+  save();
+  document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('on', t.dataset.tab === tab));
+  document.querySelectorAll('.panel').forEach((p) => p.classList.toggle('on', p.id === 'panel-' + tab));
+  if (tab === 'admin') loadAdmin();
+  if (tab === 'demo' && state.step === 6) loadDemoAdmin();
+}
+
+// ---------- shared actions (admin tab and demo step 6) ----------
+
+async function getUsers() { users = (await api('GET', '/users')).data; }
+
+function payoutRows(list, where) {
+  return `<table><tr><th>Creator</th><th>Coins</th><th>Status</th><th>Requested</th><th></th></tr>${list.map((p) => `
+    <tr><td>${esc(nameOf(p.creatorId))}</td><td class="num">${fmt(p.amount)}</td>
+    <td><span class="badge ${p.status}">${p.status === 'REQUESTED' ? 'WAITING' : p.status}</span></td>
+    <td class="when">${when(p.createdAt)}</td>
+    <td><div class="actions">${p.status === 'REQUESTED'
+      ? `<button class="btn green small" onclick="decide(this,'${p.id}','paid','${where}')">Approve</button>
+         <button class="btn ghost small" onclick="decide(this,'${p.id}','reject','${where}')">Reject</button>` : ''}</div></td></tr>`).join('')}</table>`;
+}
+
+function chatRows(list, where) {
+  return `<table><tr><th>#</th><th>From</th><th>Message</th><th>Coins</th><th></th></tr>${list.slice().reverse().map((c) => `
+    <tr><td>${c.streamSeq}</td><td>${esc(nameOf(c.senderId))}</td><td>${esc(c.message)}</td><td class="num">${fmt(c.amount)}</td>
+    <td><div class="actions">${c.status === 'REVERSED'
+      ? '<span class="badge REVERSED">Refunded</span>'
+      : `<button class="btn red small" onclick="refund(this,'${c.id}','${where}')">Refund</button>`}</div></td></tr>`).join('')}</table>`;
+}
+
+function decide(btn, id, action, where) {
+  busy(btn, async () => {
+    const { data } = await api('POST', `/admin/payouts/${id}/${action}`);
+    const who = esc(nameOf(data.creatorId));
+    const html = action === 'paid'
+      ? `<b>Approved.</b> ${fmt(data.amount)} coins paid out to ${who}.${flow([`On hold −${fmt(data.amount)}`, '→', 'Paid out'])}`
+      : `<b>Rejected.</b> ${fmt(data.amount)} coins went back to ${who}'s earnings.${flow([`On hold −${fmt(data.amount)}`, '→', `Earnings +${fmt(data.amount)}`])}`;
+    if (where === 'demo') {
+      showResult('res6', html);
+      markDone(6);
+      await loadDemoAdmin();
+    } else {
+      showResult('resPayout', html);
+      await loadAdmin();
+    }
+  });
+}
+
+async function refund(btn, id, where) {
+  const list = where === 'demo' ? state.demoChats || [] : chats;
+  const c = list.find((x) => x.id === id);
+  if (!c) return;
+  const sender = esc(nameOf(c.senderId));
+  const creator = esc(nameOf(c.creatorId));
+  const ok = await confirmBox('Refund this Super Chat?', `${sender} gets all ${fmt(c.amount)} coins back. ${creator}'s share (${fmt(c.creatorAmount)}) and the platform fee (${fmt(c.platformFee)}) are taken back.`, 'Refund');
+  if (!ok) return;
+  busy(btn, async () => {
+    const { data } = await api('POST', `/admin/super-chats/${id}/reversal`, { body: { reason: 'Refunded by admin' } });
+    const earnings = (await api('GET', '/me', { as: data.creatorId })).data.balances.earnings;
+    const negative = earnings < 0;
+    const html = `<b>Refunded.</b> ${sender} got all ${fmt(c.amount)} coins back.
+      ${flow([`${sender} +${fmt(c.amount)}`, '←', `${creator} −${fmt(c.creatorAmount)}`, `Platform −${fmt(c.platformFee)}`])}
+      ${negative ? `<div style="margin-top:8px">${creator} had already withdrawn, so their earnings are now <b>${fmt(earnings)}</b>. Future earnings pay this back before the next withdrawal.</div>` : ''}`;
+    if (where === 'demo') {
+      showResult('res6', html, negative ? 'warn' : '');
+      markDone(6);
+      await loadDemoAdmin();
+    } else {
+      showResult('resChat', html, negative ? 'warn' : '');
+      await loadChats();
+    }
+  });
+}
+
+// ---------- admin tab ----------
+
+async function loadAdmin() {
+  try {
+    const [u, s, p] = await Promise.all([api('GET', '/users'), api('GET', '/streams'), api('GET', '/admin/payouts')]);
+    users = u.data;
+    streams = s.data;
+    payouts = p.data;
+  } catch (e) { toast(e.message, true); return; }
+  for (const st of ['REQUESTED', 'PAID', 'REJECTED']) $('n' + st).textContent = payouts.filter((p) => p.status === st).length;
+  $('nALL').textContent = payouts.length;
+  renderPayouts();
+  if (!selected || !streams.some((s) => s.id === selected)) selected = streams[0]?.id || null;
+  renderStreams();
+  await loadChats();
+}
+
+function renderPayouts() {
+  const list = payouts.filter((p) => !filter || p.status === filter);
+  $('payouts').innerHTML = list.length ? payoutRows(list, 'admin')
+    : `<div class="empty">${filter === 'REQUESTED' ? 'Nothing waiting for review.' : 'No withdrawals here.'}</div>`;
+}
+
+function renderStreams() {
+  $('streams').innerHTML = streams.length
+    ? streams.map((s) => `<button class="srow ${s.id === selected ? 'on' : ''}" onclick="selectStream('${s.id}')">
+        <div class="info"><b>${esc(s.id)}</b><span>by ${esc(s.creatorName)} · ${when(s.createdAt)}</span></div>
+        <div class="count">${fmt(s.superChats)}</div></button>`).join('')
+    : '<div class="empty">No lives yet.</div>';
+}
+
+function selectStream(id) {
+  selected = id;
+  $('resChat').className = 'result';
+  renderStreams();
+  loadChats();
+}
+
+async function loadChats() {
+  $('chatsTarget').textContent = selected ? `· ${selected}` : '';
+  if (!selected) { $('chats').innerHTML = '<div class="empty">Pick a live on the left.</div>'; return; }
+  try {
+    chats = (await api('GET', `/streams/${encodeURIComponent(selected)}/super-chats?limit=200`)).data;
+    if (chats.some((c) => !users.some((u) => u.id === c.senderId))) await getUsers();
+  } catch (e) { toast(e.message, true); return; }
+  $('chats').innerHTML = chats.length ? chatRows(chats, 'admin') : '<div class="empty">No Super Chats on this live yet.</div>';
+}
+
+$('filters').addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  $('filters').querySelectorAll('.chip').forEach((c) => c.classList.toggle('on', c === chip));
+  filter = chip.dataset.f;
+  renderPayouts();
+});
+
+// ---------- guided demo ----------
+
+function unlockedUpTo() {
+  const d = state.demo || {};
+  if (!d.creator) return 1;
+  if (!d.streamId) return 2;
+  if (!d.bought) return 3;
+  if (!d.sent) return 4;
+  return 6;
+}
+
+function markDone(n) {
+  if (!state.done.includes(n)) state.done.push(n);
+  save();
+  renderSteps();
+}
+
+function openStep(n) {
+  if (n > unlockedUpTo()) return;
+  state.step = n;
+  save();
+  renderSteps();
+  if (n === 5) preparePayout();
+  if (n === 6) loadDemoAdmin();
+  setTimeout(() => document.querySelector(`.step[data-step="${n}"]`).scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+}
+
+function renderSteps() {
+  const max = unlockedUpTo();
+  document.querySelectorAll('.step').forEach((el) => {
+    const n = Number(el.dataset.step);
+    el.classList.toggle('active', n === state.step);
+    el.classList.toggle('done', state.done.includes(n));
+    el.classList.toggle('locked', n > max);
+    el.querySelector('.step-num').textContent = state.done.includes(n) ? '✓' : n;
+  });
+  $('progress').innerHTML = [1, 2, 3, 4, 5, 6]
+    .map((n) => `<span class="${state.done.includes(n) ? 'done' : n === state.step ? 'current' : ''}"></span>`).join('');
+  $('finish').classList.toggle('show', state.done.includes(6));
+  const d = state.demo;
+  if (d?.creator) {
+    $('who2').textContent = $('who5').textContent = d.creator.name;
+    $('who3').textContent = $('who4').textContent = d.viewer.name;
+  }
+  $('btnRetry').disabled = !d?.lastBuy;
+}
+
+async function refreshBalances() {
+  const d = state.demo;
+  if (!d) return;
+  try {
+    const [v, c] = await Promise.all([api('GET', '/me', { as: d.viewer.id }), api('GET', '/me', { as: d.creator.id })]);
+    balances = { viewer: v.data.balances.wallet, creator: c.data.balances.earnings };
+  } catch (e) {
+    if (e.status === 401) resetDemo(true);
+  }
+}
+
+function createPeople() {
+  busy($('btnPeople'), async () => {
+    const creatorName = $('creatorName').value.trim() || 'Creator';
+    const viewerName = $('viewerName').value.trim() || 'Viewer';
+    const c = (await api('POST', '/users', { body: { displayName: creatorName } })).data;
+    const v = (await api('POST', '/users', { body: { displayName: viewerName } })).data;
+    state.demo = { creator: { id: c.id, name: creatorName }, viewer: { id: v.id, name: viewerName } };
+    $('streamName').value = `${creatorName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-live-${Math.floor(Math.random() * 9000 + 1000)}`;
+    showResult('res1', `<b>${esc(creatorName)}</b> (creator) and <b>${esc(viewerName)}</b> (viewer) are ready, each with 0 coins.${nextButton(2)}`);
+    $('btnPeople').disabled = true;
+    markDone(1);
+    setTimeout(() => openStep(2), 800);
+  });
+}
+
+function goLive() {
+  busy($('btnLive'), async () => {
+    const d = state.demo;
+    const id = $('streamName').value.trim();
+    if (!id) throw new Error('Give the live a name');
+    await api('POST', '/streams', { as: d.creator.id, body: { id } });
+    d.streamId = id;
+    showResult('res2', `<b>${esc(d.creator.name)} is live</b> on <b>${esc(id)}</b>.${nextButton(3)}`);
+    $('btnLive').disabled = true;
+    markDone(2);
+    setTimeout(() => openStep(3), 800);
+  });
+}
+
+function buy() {
+  busy($('btnBuy'), async () => {
+    const d = state.demo;
+    const amount = Number($('buyAmount').value);
+    d.lastBuy = { key: uuid(), amount };
+    save();
+    await api('POST', '/wallet/purchases', { as: d.viewer.id, body: { amount }, key: d.lastBuy.key });
+    d.bought = true;
+    await refreshBalances();
+    showResult('res3', `<b>Payment approved.</b> ${fmt(amount)} coins added to ${esc(d.viewer.name)}'s wallet.
+      ${flow([`Card payment −${fmt(amount)}`, '→', `${esc(d.viewer.name)}'s wallet +${fmt(amount)}`])}${nextButton(4)}`);
+    markDone(3);
+  });
+}
+
+function retryBuy() {
+  busy($('btnRetry'), async () => {
+    const d = state.demo;
+    const before = balances.viewer;
+    const { replayed } = await api('POST', '/wallet/purchases', { as: d.viewer.id, body: { amount: d.lastBuy.amount }, key: d.lastBuy.key });
+    await refreshBalances();
+    showResult('res3', replayed
+      ? `<b>Same request detected, nothing charged.</b> The original payment came back. The wallet is still <b>${fmt(balances.viewer)}</b>${before === balances.viewer ? ' (unchanged)' : ''}.${nextButton(4)}`
+      : 'The request went through again.', 'warn');
+  });
+}
+
+function sendSuperChat() {
+  busy($('btnSend'), async () => {
+    const d = state.demo;
+    const amount = Number($('scAmount').value);
+    const message = $('scMessage').value.trim();
+    if (!message) throw new Error('Write a message first');
+    try {
+      const { data } = await api('POST', `/streams/${encodeURIComponent(d.streamId)}/super-chats`, { as: d.viewer.id, body: { message, amount }, key: uuid() });
+      d.sent = true;
+      await refreshBalances();
+      showResult('res4', `<b>Super Chat sent.</b>
+        ${flow([`${esc(d.viewer.name)} −${fmt(amount)}`, '→', `${esc(d.creator.name)} +${fmt(data.creatorAmount)}`, `Platform +${fmt(data.platformFee)}`])}${nextButton(5)}`);
+      markDone(4);
+    } catch (e) {
+      if (e.status !== 402) throw e;
+      await refreshBalances();
+      showResult('res4', `<b>Not enough coins.</b> ${esc(d.viewer.name)} has ${fmt(balances.viewer)} but tried to send ${fmt(amount)}. Nothing was charged.`, 'bad');
+    }
+  });
+}
+
+async function preparePayout() {
+  await refreshBalances();
+  const earnings = balances.creator ?? 0;
+  if (!$('payoutAmount').value || Number($('payoutAmount').value) > earnings) $('payoutAmount').value = Math.max(earnings, 0) || '';
+  $('payoutHint').textContent = `${state.demo?.creator?.name || 'Creator'} has ${fmt(earnings)} coins of earnings.`;
+}
+
+function requestPayout() {
+  busy($('btnPayout'), async () => {
+    const d = state.demo;
+    const amount = Number($('payoutAmount').value);
+    if (!amount) throw new Error('Enter an amount');
+    try {
+      await api('POST', '/payouts', { as: d.creator.id, body: { amount }, key: uuid() });
+    } catch (e) {
+      if (e.status !== 402) throw e;
+      showResult('res5', `<b>Not enough earnings.</b> ${esc(d.creator.name)} can withdraw at most ${fmt(balances.creator)}.`, 'bad');
+      return;
+    }
+    showResult('res5', `<b>Withdrawal requested.</b> ${fmt(amount)} coins are on hold until an admin approves.
+      ${flow([`${esc(d.creator.name)}'s earnings −${fmt(amount)}`, '→', `On hold +${fmt(amount)}`])}${nextButton(6)}`);
+    markDone(5);
+    preparePayout();
+  });
+}
+
+async function loadDemoAdmin() {
+  const d = state.demo;
+  if (!d?.streamId) return;
+  try {
+    await getUsers();
+    const [p, c] = await Promise.all([
+      api('GET', '/admin/payouts'),
+      api('GET', `/streams/${encodeURIComponent(d.streamId)}/super-chats?limit=200`),
+    ]);
+    const mine = p.data.filter((x) => x.creatorId === d.creator.id);
+    state.demoChats = c.data;
+    $('demoPayouts').innerHTML = mine.length ? payoutRows(mine, 'demo') : '<div class="empty">No withdrawal requests yet. Request one in step 5.</div>';
+    $('demoChats').innerHTML = c.data.length ? chatRows(c.data, 'demo') : '<div class="empty">No Super Chats yet.</div>';
+  } catch (e) { toast(e.message, true); }
+}
+
+function resetDemo(silent) {
+  state = { tab: 'demo', step: 1, done: [], demo: null };
+  save();
+  if (!silent) location.reload();
+}
+
+function restoreDemo() {
+  const d = state.demo;
+  if (!d) return;
+  $('creatorName').value = d.creator.name;
+  $('viewerName').value = d.viewer.name;
+  $('btnPeople').disabled = true;
+  showResult('res1', `<b>${esc(d.creator.name)}</b> (creator) and <b>${esc(d.viewer.name)}</b> (viewer) are ready.`);
+  if (d.streamId) {
+    $('streamName').value = d.streamId;
+    $('btnLive').disabled = true;
+    showResult('res2', `<b>${esc(d.creator.name)} is live</b> on <b>${esc(d.streamId)}</b>.`);
+  }
+  if (state.step === 5) preparePayout();
+}
+
+// ---------- init ----------
+
+document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+restoreDemo();
+renderSteps();
+switchTab(state.tab === 'demo' ? 'demo' : 'admin');
+setInterval(() => { if (state.tab === 'admin') loadAdmin(); }, 5000);
+</script>
+</body>
+</html>
